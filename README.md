@@ -2,9 +2,10 @@
 
 Usage:
 
-    go install rsc.io/2fa@latest
+    go install github.com/dgrieser/2fa@latest
 
-    2fa -add [-7] [-8] [-hotp] name
+    2fa -add [-7] [-8] [-hotp] [-hash alg] name
+    2fa -remove name
     2fa -list
     2fa name
 
@@ -18,6 +19,13 @@ By default the new key generates time-based (TOTP) authentication codes; the
 
 By default the new key generates 6-digit codes; the `-7` and `-8` flags select
 7- and 8-digit codes instead.
+
+By default the new key derives codes using HMAC-SHA1, as nearly all two-factor
+providers do; the `-hash` flag selects `sha256` or `sha512` instead. A
+non-default algorithm is recorded in the keychain alongside the key, so it only
+needs to be named when adding the key.
+
+`2fa -remove name` deletes the key with the given name from the keychain.
 
 `2fa -list` lists the names of all the keys in the keychain.
 

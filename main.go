@@ -307,7 +307,9 @@ func (c *Keychain) add(name string) {
 	if err != nil {
 		log.Fatalf("opening keychain: %v", err)
 	}
-	f.Chmod(0600)
+	if err := f.Chmod(0600); err != nil {
+		log.Fatalf("adding key: %v", err)
+	}
 
 	if _, err := f.Write([]byte(line)); err != nil {
 		log.Fatalf("adding key: %v", err)
@@ -341,21 +343,21 @@ func (c *Keychain) remove(name string) {
 	}
 	tmp := f.Name()
 	if err := f.Chmod(0600); err != nil {
-		f.Close()
-		os.Remove(tmp)
+		_ = f.Close()
+		_ = os.Remove(tmp)
 		log.Fatalf("removing key: %v", err)
 	}
 	if _, err := f.Write(buf.Bytes()); err != nil {
-		f.Close()
-		os.Remove(tmp)
+		_ = f.Close()
+		_ = os.Remove(tmp)
 		log.Fatalf("removing key: %v", err)
 	}
 	if err := f.Close(); err != nil {
-		os.Remove(tmp)
+		_ = os.Remove(tmp)
 		log.Fatalf("removing key: %v", err)
 	}
 	if err := os.Rename(tmp, c.file); err != nil {
-		os.Remove(tmp)
+		_ = os.Remove(tmp)
 		log.Fatalf("removing key: %v", err)
 	}
 }
@@ -393,7 +395,9 @@ func (c *Keychain) code(name string) string {
 func (c *Keychain) show(name string) {
 	code := c.code(name)
 	if *flagClip {
-		clipboard.WriteAll(code)
+		if err := clipboard.WriteAll(code); err != nil {
+			log.Printf("copying to clipboard: %v", err)
+		}
 	}
 	fmt.Printf("%s\n", code)
 }
@@ -422,7 +426,7 @@ func decodeKey(key string) ([]byte, error) {
 
 func hotp(key []byte, counter uint64, digits int, alg func() hash.Hash) int {
 	h := hmac.New(alg, key)
-	binary.Write(h, binary.BigEndian, counter)
+	_ = binary.Write(h, binary.BigEndian, counter)
 	sum := h.Sum(nil)
 	v := binary.BigEndian.Uint32(sum[sum[len(sum)-1]&0x0F:]) & 0x7FFFFFFF
 	d := uint32(1)

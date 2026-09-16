@@ -80,7 +80,6 @@ import (
 	"flag"
 	"fmt"
 	"hash"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -190,7 +189,7 @@ func readKeychain(file string) *Keychain {
 		file: file,
 		keys: make(map[string]Key),
 	}
-	data, err := ioutil.ReadFile(file)
+	data, err := os.ReadFile(file)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return c
@@ -336,7 +335,7 @@ func (c *Keychain) remove(name string) {
 	// and rename it into place, so an interrupted removal cannot
 	// truncate or corrupt the existing keychain.
 	dir, base := filepath.Split(c.file)
-	f, err := ioutil.TempFile(dir, base)
+	f, err := os.CreateTemp(dir, base)
 	if err != nil {
 		log.Fatalf("removing key: %v", err)
 	}
@@ -401,12 +400,10 @@ func (c *Keychain) show(name string) {
 
 func (c *Keychain) showAll() {
 	var names []string
-	max := 0
+	width := 0
 	for name, k := range c.keys {
 		names = append(names, name)
-		if max < k.digits {
-			max = k.digits
-		}
+		width = max(width, k.digits)
 	}
 	sort.Strings(names)
 	for _, name := range names {
@@ -415,7 +412,7 @@ func (c *Keychain) showAll() {
 		if k.offset == 0 {
 			code = c.code(name)
 		}
-		fmt.Printf("%-*s\t%s\n", max, code, name)
+		fmt.Printf("%-*s\t%s\n", width, code, name)
 	}
 }
 

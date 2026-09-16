@@ -2,7 +2,7 @@
 
 Usage:
 
-    go install rsc.io/2fa@latest
+    go install github.com/dgrieser/2fa@latest
 
     2fa -add [-7] [-8] [-hotp] [-hash alg] name
     2fa -remove name
